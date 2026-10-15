@@ -27,17 +27,19 @@ python 02_elimination_by_hand.py
 
 | file | what it shows |
 |---|---|
-| `gauss.py` | the solver: `forward_naive`, `forward` (with pivoting), `back_substitute`, `classify`, `solve` |
+| `gauss.py` | the solver: `eliminate` (with or without row swaps), `back_substitute`, `classify`, `solve` |
 | `01_receipts_one_liner.py` | three receipts solved with `np.linalg.solve` |
-| `02_elimination_by_hand.py` | the same receipts, every row move printed |
+| `02_elimination_by_hand.py` | the same receipts, three row moves done one at a time |
 | `03_three_outcomes.py` | one answer, no answer (surge), infinitely many (commute) |
 | `04_sympy_rref.py` | exact reduced row echelon form and a general solution |
-| `05_tiny_pivot.py` | a pivot of `1e-20` gives `x = 0` without a row swap |
-| `06_twenty_receipts.py` | twenty noisy receipts, the normal equations, `lstsq` |
+| `05_tiny_pivot.py` | `0.1 + 0.2`, then a pivot of `1e-20` that gives `x = 0` without a row swap |
+| `06_twenty_receipts.py` | noisy receipts, the normal equations, `lstsq`, and how the guess improves with more receipts |
 | `07_commute_singular.py` | same distance every ride: numpy, statsmodels and scikit-learn disagree |
 | `08_solve_vs_inverse.py` | solve against invert-then-multiply, on time and accuracy |
 | `09_lu_reuse.py` | factor once with `lu_factor`, then solve 500 price lists |
 | `10_check_against_numpy.py` | our solver against numpy on 1,000 random systems |
+| `11_loop_vs_numpy.py` | the same algorithm as a Python loop against numpy, timed |
+| `12_phone_location.py` | find a phone from three tower distances by subtracting circle equations |
 
 Timings depend on your machine and on what else it is doing. The ratios are
 the part worth comparing.
@@ -57,7 +59,7 @@ least squares instead of exactly three.
 </details>
 
 2. Add a fourth ride of 2 km and 8 minutes. Classify the system when it cost
-   $7.30, then when it cost $8.00. Use `forward` and `classify`.
+   $7.30, then when it cost $8.00. Use `eliminate` and `classify`.
 
 <details><summary>Answer</summary>
 

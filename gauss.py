@@ -1,24 +1,33 @@
 """Gaussian elimination from scratch, built up one step at a time.
 
-forward_naive  the textbook loop, no row swaps (breaks on tiny pivots)
-forward        the grown-up loop: partial pivoting, skips empty columns
+eliminate        turn the grid into a staircase (pivot=False is the
+                 plain textbook version that breaks on tiny pivots)
 back_substitute  solve a staircase from the bottom row up
-classify       one answer, no answer, or infinitely many
-solve          all of the above in one call
+classify         one answer, no answer, or infinitely many
+solve            all of the above in one call
 """
 import numpy as np
 
 
-def forward_naive(M, show=False):
-    M = np.array(M, dtype=float)        # a copy, so the receipts stay safe
-    n = M.shape[0]
-    for c in range(n - 1):              # pivot sits at (c, c)
-        for i in range(c + 1, n):       # every row underneath it
-            f = M[i, c] / M[c, c]       # the multiplier
-            M[i] = M[i] - f * M[c]      # the one row move we need
-            if show:
-                print(f"R{i+1} <- R{i+1} - {f:g}*R{c+1}")
-    return M
+def eliminate(M, pivot=True, tol=1e-12):
+    M = np.array(M, dtype=float)          # a copy, the receipts stay safe
+    rows, cols = M.shape
+    pivots, r = [], 0                     # pivot columns, next free row
+    for c in range(cols - 1):             # the last column holds prices
+        if r == rows:
+            break
+        if np.max(np.abs(M[r:, c])) < tol:  # nothing usable here, so
+            continue                        # this unknown is free
+        p = r                             # textbook: take the next row
+        if pivot:                         # better: take the biggest number
+            p = r + np.argmax(np.abs(M[r:, c]))
+        M[[r, p]] = M[[p, r]]             # move that row to the top
+        for i in range(r + 1, rows):
+            f = M[i, c] / M[r, c]         # the multiplier
+            M[i] = M[i] - f * M[r]        # the one row move we need
+        pivots.append(c)
+        r += 1
+    return M, pivots
 
 
 def back_substitute(U):
@@ -28,27 +37,6 @@ def back_substitute(U):
         known = U[i, i + 1:n] @ x[i + 1:]   # the part already solved
         x[i] = (U[i, -1] - known) / U[i, i]
     return x
-
-
-def forward(M, tol=1e-12):
-    M = np.array(M, dtype=float)
-    rows, cols = M.shape
-    pivots = []                          # (row, column) of every pivot
-    r = 0                                # the next row that needs a pivot
-    for c in range(cols - 1):            # the last column holds prices
-        if r == rows:
-            break
-        p = r + np.argmax(np.abs(M[r:, c]))  # biggest entry in the column
-        if abs(M[p, c]) < tol:           # nothing to pivot on here, so
-            continue                     # this unknown will be free
-        if p != r:
-            M[[r, p]] = M[[p, r]]        # swap it to the top
-        for i in range(r + 1, rows):
-            f = M[i, c] / M[r, c]
-            M[i] = M[i] - f * M[r]
-        pivots.append((r, c))
-        r += 1
-    return M, pivots
 
 
 def classify(U, pivots, tol=1e-10):
@@ -62,8 +50,7 @@ def classify(U, pivots, tol=1e-10):
 
 
 def solve(A, b):
-    M = np.column_stack([A, b])
-    U, pivots = forward(M)
+    U, pivots = eliminate(np.column_stack([A, b]))
     kind = classify(U, pivots)
     if kind != "one":
         return kind, None
